@@ -1,70 +1,207 @@
-# Book Your Admissions
+# Book Your Admissions 🎓
 
-An AI-powered college search and admission assistance platform designed to help students discover colleges, explore courses, and access admission information.
+**An AI-powered college search and admission assistance platform** designed to help students discover colleges, explore courses, understand eligibility requirements and access admission-related information.
 
-## Features
+## 📌 Project Overview
 
-- College search by course and location.
-- Eligibility text filtering.
-- Fee sorting with missing values handled.
-- College information retrieval from available brochures.
-- Gradio-based user interface.
-- FastAPI search endpoint.
-- Automated admission deadline reminders using n8n and Gmail.
-- English and Telugu chatbot interface.
+Book Your Admissions aims to simplify the college admission discovery process by bringing college information, brochure-based question answering and admission deadline notifications into one platform.
 
-## Technology Stack
+The project combines Python-based data processing, a Gradio interface, FastAPI endpoints and n8n workflow automation.
 
-- Python
-- Pandas
-- Gradio
-- FastAPI
-- Google Sheets
-- n8n
-- Gmail
-- ngrok (development tunnelling)
+## ✨ Features
 
-## Project Dataset
+### 1. College Search
+- Search colleges by course and location.
+- Filter colleges using eligibility information.
+- Display college names, courses, locations and official websites.
+- Handle missing fee and eligibility information without assuming values.
+- Support fee-based sorting where data is available.
 
-The prototype contains 15 college-course records representing five colleges in Andhra Pradesh.
+### 2. AI-Based Brochure Information Retrieval
+- Retrieve information from uploaded college brochures.
+- Answer questions using available brochure content.
+- Support English and Telugu chatbot interaction.
+- Indicate when information cannot be found in the available documents.
 
-## Project Structure
+### 3. Admission Deadline Notifications
+- Schedule automatic deadline checks using n8n.
+- Retrieve college deadline records from Google Sheets.
+- Identify upcoming admission deadlines.
+- Use conditional logic to determine whether notifications are required.
+- Send reminder emails through Gmail.
 
-- `app/` – Backend application
-- `data/` – College dataset
-- `notebooks/` – Development notebook
-- `tests/` – Test reports
+### 4. Web Interface and API
+- Gradio-based student interface.
+- FastAPI backend for college search.
+- JSON-based API responses.
+- ngrok tunnelling for development and external API testing.
 
-## Current Status
+## 🛠️ Technology Stack
 
-Working prototype. Data verification, integrated testing, and permanent deployment are ongoing.
+| Technology | Purpose |
+|---|---|
+| Python | Application logic |
+| Pandas | Dataset processing and filtering |
+| Gradio | User interface |
+| FastAPI | Backend API |
+| Pydantic | API request validation |
+| Google Colab | Development environment |
+| Google Sheets | College and deadline records |
+| n8n | Workflow automation |
+| Gmail | Email notifications |
+| ngrok | Development API tunnelling |
 
-## Running the Project
+## 🏗️ System Architecture
 
-Install dependencies:
+### College Search Flow
+
+```text
+Student
+   |
+   v
+Gradio Interface
+   |
+   v
+FastAPI Endpoint
+   |
+   v
+College Search Function
+   |
+   v
+Pandas Data Processing
+   |
+   v
+College Dataset (CSV)
+   |
+   v
+Filtered College Results
+```
+
+### Admission Deadline Reminder Flow
+
+```text
+Schedule Trigger
+       |
+       v
+Google Sheets
+       |
+       v
+Deadline Checking
+       |
+       v
+IF Condition
+       |
+       +------ True ------> Gmail Notification
+       |
+       +------ False -----> No Notification
+```
+
+### Brochure Retrieval Flow
+
+```text
+Student Question
+       |
+       v
+Brochure Retrieval
+       |
+       v
+Relevant Document Content
+       |
+       v
+Answer or Information Not Available
+```
+
+## 📊 Project Dataset
+
+The current prototype contains:
+
+- **15 college-course records**
+- **5 colleges**
+- Focus on B.Tech CSE records in Andhra Pradesh.
+
+Dataset fields include:
+
+- `college_name`
+- `course_name`
+- `location`
+- `eligibility`
+- `annual_fee_inr`
+- `official_url`
+- `checked_on`
+- `application_deadline`
+- `deadline_source_url`
+
+Some fee, eligibility and deadline fields are incomplete or awaiting verification. The application should not present unverified information as confirmed admission facts.
+
+## 📁 Repository Structure
+
+```text
+book-your-admissions/
+│
+├── n8n/
+│   └── deadline_reminder_workflow.json
+│
+├── Book_Your_Admissions_AI_ipynb_.ipynb
+│
+├── colleges.csv
+│
+├── requirements.txt
+│
+├── README.md
+│
+└── .gitignore
+```
+
+## 🚀 Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Rajendra123595/book-your-admissions.git
+```
+
+### 2. Open the project
+
+```bash
+cd book-your-admissions
+```
+
+### 3. Create a virtual environment
+
+```bash
+python -m venv venv
+```
+
+Activate it on Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+### 4. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Run the FastAPI application:
+### 5. Run the development notebook
 
-```bash
-uvicorn app.main:app --reload
-```
+Open `Book_Your_Admissions_AI_ipynb_.ipynb` in Google Colab or Jupyter Notebook.
 
-## Important
+Upload or provide access to the college dataset and execute the required notebook cells in order.
 
-College fees, eligibility criteria, and admission deadlines must be verified against official institutional sources. Missing information is not treated as zero or assumed.
+**Note:** The current implementation is notebook-based. FastAPI and Gradio are run through the development notebook; standalone deployment files such as `app/main.py` are not yet included.
 
-## Future Improvements
+## 🔄 n8n Workflow
 
-- Complete official college data verification.
-- Improve recommendation functionality.
-- Add persistent database storage.
-- Deploy frontend and backend.
-- Add automated tests and authentication.
+The exported workflow is available at:
 
-## Author
+`n8n/deadline_reminder_workflow.json`
 
-Desu Rajendra Kumar
+The workflow includes:
+
+1. Schedule Trigger.
+2. Google Sheets integration.
+3. Deadline-checking code.
+4. IF condition.
+5. Gmail notification
