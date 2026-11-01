@@ -1,4 +1,193 @@
 {
-  "workflow": "Book Your Admissions Deadline Reminder",
-  "description": "n8n automated admission deadline reminder workflow"
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "26f6c9e7-c93f-44c9-8199-cf9a2b945f1d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1o-cONNkeRa3y721sYWLspeTreuD3zzb3qrwRfC_299E",
+          "mode": "list",
+          "cachedResultName": "colleges.csv",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1o-cONNkeRa3y721sYWLspeTreuD3zzb3qrwRfC_299E/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1o-cONNkeRa3y721sYWLspeTreuD3zzb3qrwRfC_299E/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        0
+      ],
+      "id": "884eaad2-0084-4e7e-9caa-772ab839e409",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Q5qin8U5nlfPoaIH",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\n# Book Your Admissions — Upcoming Deadline Checker\n# Compatible with n8n Python mode without imports.\n\n# Current date in YYYY-MM-DD format.\n# Update this date when testing on a different day.\ntoday = \"2026-10-25\"\n\ntoday_year = int(today[0:4])\ntoday_month = int(today[5:7])\ntoday_day = int(today[8:10])\n\n# Convert a date to a sortable day number.\n# This supports month and year boundaries.\ndef day_number(year, month, day):\n    total = year * 365 + day\n    for m in range(1, month):\n        if m == 2:\n            total += 28\n        elif m in (4, 6, 9, 11):\n            total += 30\n        else:\n            total += 31\n\n    # Add leap days from earlier years.\n    total += (year - 1) // 4 - (year - 1) // 100 + (year - 1) // 400\n    return total\n\ntoday_num = day_number(today_year, today_month, today_day)\nupcoming = []\n\nfor item in _items:\n    row = item[\"json\"]\n\n    deadline = str(row.get(\"application_deadline\", \"\")).strip()\n    source_url = str(row.get(\"deadline_source_url\", \"\")).strip()\n\n    if deadline.lower() in (\"\", \"nan\", \"none\", \"null\"):\n        continue\n\n    if source_url.lower() in (\"\", \"nan\", \"none\", \"null\"):\n        continue\n\n    if len(deadline) != 10 or deadline[4] != \"-\" or deadline[7] != \"-\":\n        continue\n\n    try:\n        year = int(deadline[0:4])\n        month = int(deadline[5:7])\n        day = int(deadline[8:10])\n    except:\n        continue\n\n    if month < 1 or month > 12 or day < 1 or day > 31:\n        continue\n\n    deadline_num = day_number(year, month, day)\n\n    if today_num <= deadline_num <= today_num + 30:\n        upcoming.append({\n            \"college_name\": row.get(\"college_name\", \"\"),\n            \"course_name\": row.get(\"course_name\", \"\"),\n            \"application_deadline\": deadline,\n            \"deadline_source_url\": source_url\n        })\n\nreturn [{\n    \"json\": {\n        \"checked_on\": today,\n        \"upcoming_count\": len(upcoming),\n        \"upcoming_deadlines\": upcoming,\n        \"message\": (\n            \"Candidate deadlines found. Verify official sources.\"\n            if upcoming\n            else \"No verified upcoming deadlines found.\"\n        )\n    }\n}]\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ],
+      "id": "ffdbf72e-4dc8-4b59-b258-eccf9c708c05",
+      "name": "Code in Python1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "f3f52c10-1577-415a-8266-274e7a91faa8",
+              "leftValue": "={{$json.upcoming_count}}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        752,
+        0
+      ],
+      "id": "ae4d3c90-efc0-4453-956d-ba7af76075e6",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "desurajendrakumar@gmail.com",
+        "subject": "Book Your Admissions — Upcoming Deadline Reminder",
+        "message": "= <h2>Book Your Admissions — Deadline Reminder</h2>  <p>Hello,</p>  <p>Here is an upcoming college admission deadline from your verified college data.</p>  <ul>   <li><strong>College:</strong> {{ $json.upcoming_deadlines[0].college_name }}</li>   <li><strong>Course:</strong> {{ $json.upcoming_deadlines[0].course_name }}</li>   <li><strong>Application deadline:</strong> {{ $json.upcoming_deadlines[0].application_deadline }}</li> </ul>  <p>   <strong>Official source:</strong>   <a href=\"{{ $json.upcoming_deadlines[0].deadline_source_url }}\">Verify deadline on the official website</a> </p>  <p>Please confirm the deadline on the official source before applying.</p>  <p>Regards,<br>Book Your Admissions Assistant</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        -96
+      ],
+      "id": "69bd5e5b-a42b-4571-b6ff-1926e933fecd",
+      "name": "Send a message",
+      "webhookId": "0a784302-1910-4de0-be0b-831170103e58",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Brbpt2a5wHbV06kg",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in Python1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": false,
+    "redactCallerExecutions": true
+  },
+  "versionId": "30793c71-026d-469c-b439-7bb8fb9b13a8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "31fa31e791f289d2ac7de2d8dd6e4dba6e259ce084b8b37283c3d894830790f1"
+  },
+  "nodeGroups": [],
+  "id": "Nj1CgZIPsM84numX",
+  "tags": []
 }
