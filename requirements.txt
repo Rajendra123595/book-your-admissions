@@ -1,0 +1,8 @@
+
+pandas
+fastapi
+uvicorn
+gradio
+requests
+pydantic
+pyngrok
